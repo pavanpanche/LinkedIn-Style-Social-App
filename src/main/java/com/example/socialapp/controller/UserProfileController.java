@@ -7,10 +7,11 @@ import com.example.socialapp.repository.UserRepository;
 import com.example.socialapp.service.UserProfileService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.security.Principal;
 
 @RestController
@@ -18,62 +19,76 @@ import java.security.Principal;
 public class UserProfileController {
 
     @Autowired
-    private UserProfileService userProfileService;
-    @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserProfileService userProfileService;
 
+    // Create profile for logged-in user
     @PostMapping
-    public ResponseEntity<UserProfileDto> createProfile(
-            @Valid @RequestBody UserProfileDto dto,
-            Principal principal) {
-
-        // Fetch the current user from the database using their email/username
-        User user = userRepository.findByEmailId(principal.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        // Create the user profile by passing the userId and profile DTO
+    public ResponseEntity<UserProfileDto> createProfile(@Valid @RequestBody UserProfileDto dto, Principal principal) {
+        User user = getCurrentUser(principal);
         UserProfileDto createdProfile = userProfileService.createUserProfile(user.getId(), dto);
 
-        return new ResponseEntity<>(createdProfile, HttpStatus.CREATED);
+        // Build URI: /api/profile/{userId}
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{userId}")
+                .buildAndExpand(user.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(createdProfile);
     }
+    // Create profile for any user (admin use-case) - optional
 
-
-
-    // Create Profile
     @PostMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> createProfile(@PathVariable Long userId, @RequestBody UserProfileDto dto) {
+    public ResponseEntity<UserProfileDto> createProfile(
+            @PathVariable Long userId,
+            @RequestBody UserProfileDto dto) {
+
         UserProfileDto created = userProfileService.createUserProfile(userId, dto);
-        return ResponseEntity.ok(created);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .build()
+                .toUri();
+
+        return ResponseEntity.created(location).body(created);
     }
 
-    // Full Update (PUT)
-    @PutMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> updateProfile(@PathVariable Long userId, @RequestBody UserProfileDto dto) {
-        UserProfileDto updated = userProfileService.updateUserProfile(userId, dto);
-        return ResponseEntity.ok(updated);
+
+    // Full update
+    @PutMapping
+    public ResponseEntity<UserProfileDto> updateProfile(@RequestBody UserProfileDto dto, Principal principal) {
+        User user = getCurrentUser(principal);
+        return ResponseEntity.ok(userProfileService.updateUserProfile(user.getId(), dto));
     }
 
-    // Partial Update (PATCH)
-    @PatchMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> patchProfile(@PathVariable Long userId, @RequestBody UserProfileDto dto) {
-        UserProfileDto patched = userProfileService.patchUserProfile(userId, dto);
-        return ResponseEntity.ok(patched);
+    // Partial update
+    @PatchMapping
+    public ResponseEntity<UserProfileDto> patchProfile(@RequestBody UserProfileDto dto, Principal principal) {
+        User user = getCurrentUser(principal);
+        return ResponseEntity.ok(userProfileService.patchUserProfile(user.getId(), dto));
     }
 
-    // Get Profile
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> getProfile(@PathVariable Long userId) {
-        return userProfileService.getUserProfile(userId)
+    // Get profile
+    @GetMapping
+    public ResponseEntity<UserProfileDto> getProfile(Principal principal) {
+        User user = getCurrentUser(principal);
+        return userProfileService.getUserProfile(user.getId())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Delete Profile
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteProfile(@PathVariable Long userId) {
-        userProfileService.deleteUserProfile(userId);
+    // Delete profile
+    @DeleteMapping
+    public ResponseEntity<Void> deleteProfile(Principal principal) {
+        User user = getCurrentUser(principal);
+        userProfileService.deleteUserProfile(user.getId());
         return ResponseEntity.noContent().build();
     }
 
+    private User getCurrentUser(Principal principal) {
+        return userRepository.findByEmailId(principal.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
 }

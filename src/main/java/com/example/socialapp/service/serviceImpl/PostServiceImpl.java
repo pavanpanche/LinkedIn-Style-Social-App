@@ -8,13 +8,19 @@ import com.example.socialapp.repository.PostRepository;
 import com.example.socialapp.repository.UserRepository;
 import com.example.socialapp.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -69,7 +75,12 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-
+    @Override
+    public PostDto getPostById(Long postId) {
+        return postRepository.findById(postId)
+                .map(this::mapToDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+    }
     @Override
     public List<PostDto> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc()
@@ -77,13 +88,25 @@ public class PostServiceImpl implements PostService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
-
     @Override
-    public PostDto getPostById(Long postId) {
-        return postRepository.findById(postId)
-                .map(this::mapToDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+    public Page<PostDto> getHomeFeed(Pageable pageable) {
+        return postRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::mapToDto);
     }
+    @Override
+    public List<PostDto> searchPosts(String keyword) {
+        List<Post> posts = postRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword, keyword);
+        return posts.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+    @Override
+    public Page<PostDto> getSortedPosts(String sortBy, String order, Pageable pageable) {
+        Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<Post> sortedPosts = postRepository.findAll(sortedPageable);
+        return sortedPosts.map(this::mapToDto);
+    }
+
 
     private PostDto mapToDto(Post post) {
         PostDto dto = new PostDto();

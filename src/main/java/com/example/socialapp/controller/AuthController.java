@@ -6,7 +6,7 @@ import com.example.socialapp.dto.RegisterRequest;
 import com.example.socialapp.entity.User;
 import com.example.socialapp.security.CustomUserDetails;
 import com.example.socialapp.security.JwtService;
-import com.example.socialapp.service.UserService;
+import com.example.socialapp.service.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
+    private final UserInfo userService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
@@ -53,5 +53,4 @@ public class AuthController {
     public String home() {
         return "Welcome to LinkedIn Social App Backend!";
     }
-
 }

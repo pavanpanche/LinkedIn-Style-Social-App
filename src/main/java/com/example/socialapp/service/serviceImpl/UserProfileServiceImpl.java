@@ -26,6 +26,11 @@ public class UserProfileServiceImpl implements UserProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
+        // Check for existing profile
+        userProfileRepository.findByUser(user).ifPresent(p -> {
+            throw new IllegalStateException("Profile already exists for this user");
+        });
+
         UserProfile profile = new UserProfile();
         profile.setUser(user);
         profile.setHeadline(dto.getHeadline());
@@ -33,7 +38,6 @@ public class UserProfileServiceImpl implements UserProfileService {
         profile.setSkills(dto.getSkills());
 
         userProfileRepository.save(profile);
-
         return mapToDto(profile);
     }
 
@@ -46,7 +50,6 @@ public class UserProfileServiceImpl implements UserProfileService {
         profile.setSkills(dto.getSkills());
 
         userProfileRepository.save(profile);
-
         return mapToDto(profile);
     }
 
@@ -54,19 +57,11 @@ public class UserProfileServiceImpl implements UserProfileService {
     public UserProfileDto patchUserProfile(Long userId, UserProfileDto dto) {
         UserProfile profile = getProfileByUserId(userId);
 
-        // Only update fields that are provided (non-null)
-        if (dto.getHeadline() != null) {
-            profile.setHeadline(dto.getHeadline());
-        }
-        if (dto.getAbout() != null) {
-            profile.setAbout(dto.getAbout());
-        }
-        if (dto.getSkills() != null) {
-            profile.setSkills(dto.getSkills());
-        }
+        if (dto.getHeadline() != null) profile.setHeadline(dto.getHeadline());
+        if (dto.getAbout() != null) profile.setAbout(dto.getAbout());
+        if (dto.getSkills() != null) profile.setSkills(dto.getSkills());
 
         userProfileRepository.save(profile);
-
         return mapToDto(profile);
     }
 
@@ -82,7 +77,6 @@ public class UserProfileServiceImpl implements UserProfileService {
         userProfileRepository.delete(profile);
     }
 
-    // Helper method to get profile by userId
     private UserProfile getProfileByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
@@ -91,7 +85,6 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found for user id " + userId));
     }
 
-    // Helper method to convert entity to DTO
     private UserProfileDto mapToDto(UserProfile profile) {
         UserProfileDto dto = new UserProfileDto();
         dto.setHeadline(profile.getHeadline());

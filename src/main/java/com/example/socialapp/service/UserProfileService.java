@@ -1,5 +1,6 @@
 package com.example.socialapp.service;
 import com.example.socialapp.dto.UserProfileDto;
+import com.example.socialapp.dto.UserProfilePatchDto;
 
 
 import java.util.Optional;
@@ -12,11 +13,9 @@ public interface UserProfileService {
     UserProfileDto updateUserProfile(Long userId, UserProfileDto dto);
 
     // Partial update (only modify provided fields)
-    UserProfileDto patchUserProfile(Long userId, UserProfileDto dto);
+    UserProfileDto patchUserProfile(Long userId, UserProfilePatchDto dto);
 
     // Get profile by user ID
     Optional<UserProfileDto> getUserProfile(Long userId);
 
-    // Delete profile
-    void deleteUserProfile(Long userId);
 }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 
-@Tag(name = "Likes", description = "Operations related to post likes")
+
 @RestController
 @RequestMapping("/api/likes")
 public class LikeController {

@@ -1,10 +1,11 @@
 package com.example.socialapp.security;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import io.swagger.v3.oas.models.*;
-import io.swagger.v3.oas.models.info.*;
-import org.springdoc.core.models.GroupedOpenApi;
-import org.springframework.context.annotation.*;
+import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
@@ -16,15 +17,7 @@ public class SwaggerConfig {
                         .title("SocialApp API")
                         .version("1.0")
                         .description("Backend API documentation for the LinkedIn-style social application")
-
                 );
     }
 
-    @Bean
-    public GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-                .group("socialapp-public")
-                .pathsToMatch("/api/**")
-                .build();
-    }
 }

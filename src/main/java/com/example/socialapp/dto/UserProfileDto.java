@@ -18,4 +18,18 @@ public class UserProfileDto {
     @NotBlank(message = "Skills are required")
     @Size(min = 3, max = 255, message = "Skills must be between 3 and 255 characters")
     private String skills;
+
+    @NotBlank(message = "Education are required")
+    @Size(min = 3, max = 255, message = "Education must be between 3 and 255 characters")
+    private String education;
+
+    @NotBlank(message = "Skills are required")
+    @Size(min = 3, max = 255, message = "Location must be between 3 and 255 characters")
+    private String location;
+
+
+
+
+
+
 }

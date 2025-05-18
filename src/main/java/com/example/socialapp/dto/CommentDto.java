@@ -15,7 +15,7 @@ public class CommentDto {
         private Long id;
 
         @NotBlank(message = "Content must not be blank")
-        @Size(max = 500, message = "Comment content must not exceed 500 characters")
+        @Size(max = 200, message = "Comment content must not exceed 200 characters")
         private String content;
         private String username;
         private Long postId;

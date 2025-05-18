@@ -1,18 +1,13 @@
 package com.example.socialapp.service;
 
-import com.example.socialapp.dto.RegisterRequest;
-import com.example.socialapp.dto.UserDto;
+import com.example.socialapp.dto.RegistrationRequestDto;
 import com.example.socialapp.entity.User;
 import com.example.socialapp.repository.UserRepository;
 import com.example.socialapp.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +17,7 @@ public class UserInfo implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(RegisterRequest request) {
+    public User registerUser(RegistrationRequestDto request) {
         // Check if user.name already exists
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username is already taken");

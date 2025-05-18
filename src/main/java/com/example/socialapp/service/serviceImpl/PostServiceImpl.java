@@ -15,7 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,10 +49,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        // Compare logged-in user's email (username) with the post owner's email
-        if (!post.getUser().getEmailId().equals(username)) {
-            throw new AccessDeniedException("Unauthorized to delete this post");
-        }
+
 
 
 
@@ -67,10 +64,6 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Long postId, String username) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-
-        if (!post.getUser().getEmailId().equals(username)) {
-            throw new AccessDeniedException("Unauthorized to delete this post");
-        }
 
         postRepository.delete(post);
     }

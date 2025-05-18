@@ -3,14 +3,10 @@ package com.example.socialapp.repository;
 import com.example.socialapp.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByUsername(String username);
-    Optional<User> findByEmailId(String emailId);
-    Optional<User> findByUsernameOrEmailId(String username, String emailId);
-    boolean existsByEmailId(String emailId);
-    List<User> findByNameContainingIgnoreCase(String name);
 
 }

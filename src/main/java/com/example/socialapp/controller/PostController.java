@@ -1,4 +1,5 @@
 package com.example.socialapp.controller;
+
 import com.example.socialapp.dto.PostDto;
 import com.example.socialapp.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,14 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
-import java.security.Principal;
 import java.util.List;
 
+@RestController
 @RequestMapping("/api/posts")
 public class PostController {
 
@@ -25,42 +25,36 @@ public class PostController {
     @Operation(summary = "Create a new post")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Post created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<PostDto> createPost(@RequestBody @Valid PostDto postDto, Principal principal) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("🔐 Authenticated user: " + auth.getName());
-        System.out.println("🔐 Authorities: " + auth.getAuthorities());
-
-        PostDto createdPost = postService.createPost(postDto, principal.getName());
+    public ResponseEntity<PostDto> createPost(@RequestBody @Valid PostDto postDto) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PostDto createdPost = postService.createPost(postDto, username);
         URI location = URI.create("/api/posts/" + createdPost.getId());
         return ResponseEntity.created(location).body(createdPost);
     }
 
+
+
     @Operation(summary = "Update an existing post")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Post updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Post not found"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
+            @ApiResponse(responseCode = "404", description = "Post not found")
     })
-    @PreAuthorize("hasRole('USER')")
     @PutMapping("/{postId}")
-    public ResponseEntity<PostDto> updatePost(@PathVariable Long postId, @RequestBody @Valid PostDto postDto, Principal principal) {
-        return ResponseEntity.ok(postService.updatePost(postId, postDto, principal.getName()));
+    public ResponseEntity<PostDto> updatePost(@PathVariable Long postId, @RequestBody @Valid PostDto postDto) {
+        return ResponseEntity.ok(postService.updatePost(postId, postDto, null)); // No user binding
     }
 
     @Operation(summary = "Delete a post")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Post deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Post not found"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
+            @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId, Principal principal) {
-        postService.deletePost(postId, principal.getName());
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId, null);  // No user binding
         return ResponseEntity.noContent().build();
     }
 

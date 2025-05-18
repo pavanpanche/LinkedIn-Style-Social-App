@@ -1,8 +1,10 @@
 package com.example.socialapp.service;
-import com.example.socialapp.dto.UserDto;
 
+import com.example.socialapp.entity.User;
+import java.util.Optional;
 
-import java.util.List;
 public interface UserService {
-    List<UserDto> searchUsersByName(String name);
+    User registerUser(User user);
+
+    User getUserByUsername(String username);
 }

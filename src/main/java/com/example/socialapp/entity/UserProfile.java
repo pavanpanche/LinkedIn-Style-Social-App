@@ -1,7 +1,6 @@
 package com.example.socialapp.entity;
 
 import jakarta.persistence.*;
-
 import lombok.*;
 
 @Entity
@@ -10,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "user_profiles")
 public class UserProfile {
 
     @Id
@@ -22,8 +22,13 @@ public class UserProfile {
     private String education;
     private String location;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true,
-            referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_userprofile_user"))
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true,
+            referencedColumnName = "user_id",
+            foreignKey = @ForeignKey(name = "fk_userprofile_user")
+    )
     private User user;
 }

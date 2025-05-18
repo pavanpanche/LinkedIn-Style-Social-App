@@ -30,7 +30,7 @@ public class DtoMapper {
         dto.setPostId(post.getId());
         dto.setTotalLikes(post.getLikes().size());
         dto.setLikedByUser(post.getLikes().stream()
-                .anyMatch(like -> like.getUser().getId().equals(currentUser.getId()))
+                .anyMatch(like -> like.getUser().getUserid().equals(currentUser.getUserid()))
         );
         dto.setLikedUsernames(
                 post.getLikes().stream()

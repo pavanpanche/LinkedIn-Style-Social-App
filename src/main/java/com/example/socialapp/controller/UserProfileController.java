@@ -3,8 +3,8 @@ package com.example.socialapp.controller;
 import com.example.socialapp.dto.UserProfileDto;
 import com.example.socialapp.dto.UserProfilePatchDto;
 import com.example.socialapp.entity.User;
-import com.example.socialapp.security.SecurityUtil;
 import com.example.socialapp.service.UserProfileService;
+import com.example.socialapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.*;
 import jakarta.validation.Valid;
@@ -25,7 +25,15 @@ public class UserProfileController {
     private UserProfileService userProfileService;
 
     @Autowired
-    private SecurityUtil securityUtil;
+    private UserService userService;
+
+    private User getAuthenticatedUser(Principal principal) {
+        User user = (User) userService.getUserByUsername(principal.getName());
+        if (user == null) {
+            throw new RuntimeException("User not found: " + principal.getName());
+        }
+        return user;
+    }
 
     @Operation(summary = "Create a profile for the logged-in user")
     @ApiResponses({
@@ -36,13 +44,13 @@ public class UserProfileController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<UserProfileDto> createProfile(@RequestBody @Valid UserProfileDto dto, Principal principal) {
-        User user = securityUtil.getCurrentUser(principal);
-        UserProfileDto createdProfile = userProfileService.createUserProfile(user.getId(), dto);
+        User user = getAuthenticatedUser(principal);
+        UserProfileDto createdProfile = userProfileService.createUserProfile(user.getUserid(), dto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{userId}")
-                .buildAndExpand(user.getId())
+                .buildAndExpand(user.getUserid())
                 .toUri();
 
         return ResponseEntity.created(location).body(createdProfile);
@@ -57,8 +65,8 @@ public class UserProfileController {
     @PreAuthorize("hasRole('USER')")
     @PutMapping
     public ResponseEntity<UserProfileDto> updateProfile(@RequestBody @Valid UserProfileDto dto, Principal principal) {
-        User user = securityUtil.getCurrentUser(principal);
-        return ResponseEntity.ok(userProfileService.updateUserProfile(user.getId(), dto));
+        User user = getAuthenticatedUser(principal);
+        return ResponseEntity.ok(userProfileService.updateUserProfile(user.getUserid(), dto));
     }
 
     @Operation(summary = "Partially update the profile of the logged-in user")
@@ -70,8 +78,8 @@ public class UserProfileController {
     @PreAuthorize("hasRole('USER')")
     @PatchMapping
     public ResponseEntity<UserProfileDto> patchProfile(@RequestBody UserProfilePatchDto patchDto, Principal principal) {
-        User user = securityUtil.getCurrentUser(principal);
-        UserProfileDto updated = userProfileService.patchUserProfile(user.getId(), patchDto);
+        User user = getAuthenticatedUser(principal);
+        UserProfileDto updated = userProfileService.patchUserProfile(user.getUserid(), patchDto);
         return ResponseEntity.ok(updated);
     }
 
@@ -82,10 +90,9 @@ public class UserProfileController {
     })
     @GetMapping
     public ResponseEntity<UserProfileDto> getProfile(Principal principal) {
-        User user = securityUtil.getCurrentUser(principal);
-        return userProfileService.getUserProfile(user.getId())
+        User user = getAuthenticatedUser(principal);
+        return userProfileService.getUserProfile(user.getUserid())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
 }

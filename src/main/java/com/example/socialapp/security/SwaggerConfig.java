@@ -17,6 +17,7 @@ public class SwaggerConfig {
                         .title("SocialApp API")
                         .version("1.0")
                         .description("Backend API documentation for the LinkedIn-style social application")
+
                 );
     }
 

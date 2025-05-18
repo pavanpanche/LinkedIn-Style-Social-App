@@ -1,4 +1,5 @@
 package com.example.socialapp.service.serviceImpl;
+
 import com.example.socialapp.dto.UserProfileDto;
 import com.example.socialapp.dto.UserProfilePatchDto;
 import com.example.socialapp.entity.User;
@@ -7,29 +8,27 @@ import com.example.socialapp.exception.ResourceNotFoundException;
 import com.example.socialapp.repository.UserProfileRepository;
 import com.example.socialapp.repository.UserRepository;
 import com.example.socialapp.service.UserProfileService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    @Autowired
-    private UserProfileRepository userProfileRepository;
+    public UserProfileServiceImpl(UserRepository userRepository, UserProfileRepository userProfileRepository) {
+        this.userRepository = userRepository;
+        this.userProfileRepository = userProfileRepository;
+    }
 
     @Override
+    @Transactional
     public UserProfileDto createUserProfile(Long userId, UserProfileDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-
-        System.out.println("Creating profile for user: " + user.getId() + " - " + user.getEmailId());
-
-        userProfileRepository.findByUser(user).ifPresent(p -> {
-            throw new IllegalStateException("Profile already exists for this user");
-        });
 
         UserProfile profile = new UserProfile();
         profile.setUser(user);
@@ -44,6 +43,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
+    @Transactional
     public UserProfileDto updateUserProfile(Long userId, UserProfileDto dto) {
         UserProfile profile = getProfileByUserId(userId);
         profile.setHeadline(dto.getHeadline());
@@ -55,29 +55,18 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
+    @Transactional
     public UserProfileDto patchUserProfile(Long userId, UserProfilePatchDto patchDto) {
-        UserProfile profile = userProfileRepository.findByUser_Id(userId)
+        UserProfile profile = userProfileRepository.findByUserUserid(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
 
-        if (patchDto.getHeadline() != null) {
-            profile.setHeadline(patchDto.getHeadline());
-        }
-        if (patchDto.getAbout() != null) {
-            profile.setAbout(patchDto.getAbout());
-        }
-        if (patchDto.getSkills() != null) {
-            profile.setSkills(patchDto.getSkills());
-        }
-        if (patchDto.getEducation() != null) {
-            profile.setEducation(patchDto.getEducation());
-        }
-        if (patchDto.getLocation() != null) {
-            profile.setLocation(patchDto.getLocation());
-        }
+        if (patchDto.getHeadline() != null) profile.setHeadline(patchDto.getHeadline());
+        if (patchDto.getAbout() != null) profile.setAbout(patchDto.getAbout());
+        if (patchDto.getSkills() != null) profile.setSkills(patchDto.getSkills());
+        if (patchDto.getEducation() != null) profile.setEducation(patchDto.getEducation());
+        if (patchDto.getLocation() != null) profile.setLocation(patchDto.getLocation());
 
         UserProfile updated = userProfileRepository.save(profile);
-
-        // Convert to DTO and return
         return mapToDto(updated);
     }
 

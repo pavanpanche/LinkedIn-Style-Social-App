@@ -44,7 +44,6 @@ public class JwtValidationFilter extends OncePerRequestFilter {
                         .getBody();
 
                 String username = claims.get("username", String.class);
-
                 List<String> roles = (List<String>) claims.get("roles");
                 List<GrantedAuthority> authorities = new ArrayList<>();
 
